@@ -3,6 +3,7 @@ import chess.pgn
 import math
 from tabulate import tabulate
 from array import *
+import sqlite3
 
 def calcDist(startloc, endloc):
     p = [startloc%8 + 1, startloc//8 + 1]
@@ -19,6 +20,31 @@ def findPiece(ploc):
         if (ploc == piece_array[row][1]):
             return row
         row+=1
+
+def checkdB(dbname):
+    print("database loading")
+    connection = sqlite3.connect(dbname)
+    connection.execute("CREATE TABLE IF NOT EXISTS games (gameno INTEGER, wELO INTEGER, bELO INTEGER, wUser TEXT, bUser TEXT, timeControl TEXT, date TEXT, result TEXT, ending TEXT)")
+    connection.execute("CREATE TABLE IF NOT EXISTS movement (gameno INTEGER, piece TEXT, location INTEGER, distance REAL, piecegroup TEXT)")
+    connection.execute("INSERT INTO games VALUES (0,0,0,\"0\",\"0\",\"0\",\"0\",\"0\",\"0\")")
+    #print(connection.total_changes)
+    connection.close()
+    print("tables loaded")
+
+def insertdB(dbname):
+    connection = sqlite3.connect(dbname)
+    cursor = connection.cursor()
+    cursor.execute("SELECT max(gameno) FROM games")
+    rows = cursor.fetchall()[0]
+    print("rows:",rows)
+    if rows[0]=="None":
+        gameno = 1
+    else:
+        
+        gameno = rows[0][0]
+    print("gameno =", gameno)
+    connection.close()
+    print("game loaded")
 
 board = chess.Board()
 #print(board)
@@ -131,3 +157,6 @@ print(tabulate(piece_array, headers=["piece", "location", "Distance Moved", "gro
 # fen = board.fen()
 # print(fen)
 # print(board)
+dBfilename="pgnlist.db"
+checkdB(dBfilename)
+insertdB(dBfilename)
